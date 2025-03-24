@@ -1,4 +1,6 @@
 <script>
+    import { goto } from '$app/navigation';
+  import { json } from '@sveltejs/kit';
     let showCreateRoom = false;
   let showJoinRoom = false;
   let username = '';
@@ -13,6 +15,62 @@
     showJoinRoom = true;
     showCreateRoom = false;
   }
+
+  function handleCreateRoom(){
+   const socket=new WebSocket('ws://localhost:8080');
+   console.log(socket)
+   socket.onopen=()=>{
+    console.log("Connection successful")
+    socket.send(JSON.stringify({
+          type: "create",
+          username: username
+        }));
+   }
+
+   socket.onmessage=(event)=>{
+    try{
+      const response=JSON.parse(event.data);
+      if(response.type=="roomCreated"){
+        goto(`/room/${response.data.roomId}`)
+      }
+    }catch(err){
+      console.log(err)
+    }
+   }
+
+   socket.onerror = (err) => {
+    console.error('❌ WebSocket connection error:', err);
+  };
+  }
+
+
+  function handleJoinRoom(){
+    const socket=new WebSocket("ws://localhost:8080")
+    socket.onopen=()=>{
+      console.log("User clicked on the join room")
+      const data={
+      type:"join",
+      username:username,
+      room_id:room_id
+    }
+    socket.send(JSON.stringify(data))
+    }
+    
+
+    socket.onmessage=(event)=>{
+      try{
+        const response=JSON.parse(event.data)
+        console.log(response)
+        if(response.type=="roomJoined"){
+          const room_id=response.data.roomId;
+
+          goto(`/room/${room_id}`)
+        }
+      }catch(err){
+        console.log(err)
+      }
+    }
+  }
 </script>
 
 <main class="min-h-screen flex items-center justify-center p-4">
@@ -20,7 +78,7 @@
       <div class="bg-white rounded-2xl shadow-xl p-8 animate-fade-in">
         <div class="text-center mb-8">
           <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Welcome to ChatApp
+            Welcome to Chat Application
           </h1>
           <p class="text-gray-600 mt-2">Connect with others in real-time</p>
         </div>
@@ -60,6 +118,7 @@
               />
             </div>
             <button
+            on:click={handleCreateRoom}
               class="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg
                      hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.02] transition-all
                      shadow-md hover:shadow-lg"
@@ -100,6 +159,7 @@
               />
             </div>
             <button
+            on:click={handleJoinRoom}
               class="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg
                      hover:from-blue-600 hover:to-blue-700 transform hover:scale-[1.02] transition-all
                      shadow-md hover:shadow-lg"
