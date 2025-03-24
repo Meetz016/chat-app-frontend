@@ -1,7 +1,8 @@
 <script lang="ts">
     import { page } from '$app/state';
+  import { getSocket } from '$lib/socket.js';
     import { onMount } from 'svelte';
-  
+    import toast, {Toaster} from 'svelte-5-french-toast'
     const room_id: string = page.params.room_id;
   
     onMount(() => {
@@ -13,10 +14,9 @@
         return;
       }
   
-      const socket = new WebSocket('ws://localhost:8080');
-  
+      const socket =getSocket();
       socket.onopen = () => {
-        console.log("✅ WebSocket connection successful");
+        console.log("WebSocket connection successful");
         socket.send(JSON.stringify({
           type: "join",
           room_id,
@@ -29,17 +29,17 @@
           const response = JSON.parse(event.data);
   
           if (response.type === "userJoined") {
-            alert(`${response.data.username} has joined the room`);
+            toast.success(`${response.data.username} has joined the room`)
           }
   
-          console.log("📩 Received:", response);
+          console.log(response);
         } catch (err) {
-          console.log("❌ Error parsing message:", err);
+          console.log("Error parsing message:", err);
         }
       };
   
       socket.onerror = (err) => {
-        console.error("❌ WebSocket error:", err);
+        console.error("error:", err);
       };
     });
   </script>

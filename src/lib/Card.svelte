@@ -1,6 +1,7 @@
 <script>
     import { goto } from '$app/navigation';
   import { json } from '@sveltejs/kit';
+  import { getSocket } from './socket.js';
     let showCreateRoom = false;
   let showJoinRoom = false;
   let username = '';
@@ -17,7 +18,7 @@
   }
 
   function handleCreateRoom(){
-   const socket=new WebSocket('ws://localhost:8080');
+   const socket=getSocket()
    sessionStorage.setItem("username",username)
    socket.onopen=()=>{
     console.log("Connection successful")
@@ -35,7 +36,7 @@
       }
 
       if(response.type=="userJoined"){
-        alert(`${response.data.username} has joined the chat`)
+        alert(`${response.data.username} has joined the chat bro`)
       }
 
 
@@ -51,7 +52,7 @@
 
 
   function handleJoinRoom(){
-    const socket=new WebSocket("ws://localhost:8080")
+    const socket=getSocket()
     sessionStorage.setItem("username",username)
     socket.onopen=()=>{
       console.log("User clicked on the join room")
